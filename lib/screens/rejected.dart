@@ -5,17 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:help_ukraine_dk/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
-class AwaitConfirmation extends StatefulWidget {
-  const AwaitConfirmation({Key? key}) : super(key: key);
+class Rejected extends StatefulWidget {
+  const Rejected({Key? key}) : super(key: key);
 
   @override
-  State<AwaitConfirmation> createState() => _AwaitConfirmationState();
+  State<Rejected> createState() => _RejectedState();
 }
 
-class _AwaitConfirmationState extends State<AwaitConfirmation> {
+class _RejectedState extends State<Rejected> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.red,
       appBar: AppBar(
         actions: [
           IconButton(
@@ -27,7 +28,10 @@ class _AwaitConfirmationState extends State<AwaitConfirmation> {
         ],
       ),
       body: const Center(
-        child: Text('Awaiting administrator confirmation'),
+        child: Text(
+          'Rejected by the administrator',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
     );
   }

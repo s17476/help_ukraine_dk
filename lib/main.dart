@@ -1,15 +1,19 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:help_ukraine_dk/firebase_options.dart';
+import 'package:help_ukraine_dk/helpers/size_config.dart';
 import 'package:help_ukraine_dk/providers/user_provider.dart';
+import 'package:help_ukraine_dk/screens/aprove.dart';
 import 'package:help_ukraine_dk/screens/auth_screen.dart';
 import 'package:help_ukraine_dk/screens/await_confirmation.dart';
 import 'package:help_ukraine_dk/screens/email_verification.dart';
 import 'package:help_ukraine_dk/screens/initialization_fail.dart';
 import 'package:help_ukraine_dk/screens/loading.dart';
+import 'package:help_ukraine_dk/screens/rejected.dart';
 import 'package:help_ukraine_dk/screens/schedule.dart';
 import 'package:provider/provider.dart';
 
@@ -32,20 +36,6 @@ class _MyAppState extends State<MyApp> {
   bool emailVerified = false;
   bool emailSent = false;
 
-  Future<void> sendVerificationEmail(User? user) async {
-    if (!emailSent) {
-      await user?.sendEmailVerification();
-      emailSent = true;
-    }
-    Timer.periodic(const Duration(seconds: 3), (_) {
-      print('$emailVerified xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-
-      setState(() {
-        emailVerified = user?.emailVerified ?? false;
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -53,12 +43,16 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (ctx) => UserProvider()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Help Ukraine',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           scaffoldBackgroundColor: Colors.yellow.shade600,
         ),
-        routes: {Schedule.route: (ctx) => const Schedule()},
+        routes: {
+          Schedule.route: (ctx) => const Schedule(),
+          AproveScreen.route: (ctx) => const AproveScreen(),
+        },
         home: FutureBuilder(
           future: _initialization,
           builder: (context, snapshot) {
@@ -78,21 +72,37 @@ class _MyAppState extends State<MyApp> {
                   //   statusBarColor: Colors.black,
                   // ));
                   //user logged in
+                  // if (userSnapshot.hasData &&
+                  //     !userSnapshot.data!.emailVerified) {
+                  //   FirebaseAuth.instance.currentUser!.sendEmailVerification();
+                  //   return const EmailVerification();
+                  // }
                   if (userSnapshot.hasData) {
                     UserProvider userProvider =
                         Provider.of<UserProvider>(context);
                     User? user = FirebaseAuth.instance.currentUser;
                     // user data initialized
                     if (userProvider.user != null) {
-                      if (!emailVerified) {
-                        sendVerificationEmail(user);
-                        return const EmailVerification();
-                      }
-                      if (userProvider.user!.approved) {
-                        return const Schedule();
-                      } else {
-                        return const AwaitConfirmation();
-                      }
+                      return StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user!.uid)
+                            .snapshots(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<DocumentSnapshot> snapshot) {
+                          if (snapshot.hasData) {
+                            if (snapshot.data!['approved']) {
+                              return const Schedule();
+                            } else if (snapshot.data!['rejected']) {
+                              return const Rejected();
+                            } else {
+                              return const AwaitConfirmation();
+                            }
+                          } else {
+                            return const Loading();
+                          }
+                        },
+                      );
                     } else {
                       // initialize user provider
                       userProvider.initializeUser(
@@ -100,7 +110,6 @@ class _MyAppState extends State<MyApp> {
                     }
                   } else if (!userSnapshot.hasData &&
                       userSnapshot.connectionState != ConnectionState.waiting) {
-                    // print('auth        ' + userSnapshot.connectionState.name);
                     return const AuthScreen();
                   }
                   return const Loading();

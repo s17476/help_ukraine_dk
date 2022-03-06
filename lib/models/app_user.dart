@@ -5,6 +5,7 @@ class AppUser {
   String userImage;
   bool admin;
   bool approved;
+  bool rejected;
 
   AppUser({
     required this.userId,
@@ -13,6 +14,7 @@ class AppUser {
     required this.userImage,
     required this.admin,
     required this.approved,
+    required this.rejected,
   });
 
   AppUser copyWith({
@@ -22,6 +24,7 @@ class AppUser {
     String? userImage,
     bool? admin,
     bool? approved,
+    bool? rejected,
   }) {
     return AppUser(
       userId: userId ?? this.userId,
@@ -30,6 +33,7 @@ class AppUser {
       userImage: userImage ?? this.userImage,
       admin: admin ?? this.admin,
       approved: approved ?? this.approved,
+      rejected: rejected ?? this.rejected,
     );
   }
 }

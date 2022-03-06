@@ -119,7 +119,6 @@ class _AuthFormWidgetState extends State<AuthFormWidget>
         _userName.trim(),
         _userPassword.trim(),
         _userImageFile,
-        false,
         _isInLoginMode,
         context,
       );
@@ -155,7 +154,7 @@ class _AuthFormWidgetState extends State<AuthFormWidget>
             children: [
               //logo and image picker
               SizedBox(
-                height: responsiveSizePct(small: 40, large: 17),
+                height: responsiveSizePct(small: 45, large: 17),
                 child: _isInLoginMode
                     ? FadeTransition(
                         opacity: _opacityAnimationBackward!,

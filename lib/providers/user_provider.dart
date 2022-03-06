@@ -24,6 +24,34 @@ class UserProvider with ChangeNotifier {
     _user = null;
   }
 
+  //all users to aprove
+  Future<List<AppUser>> allUsersToAprove() async {
+    List<AppUser> usersToAprove = [];
+    _isLoading = true;
+    await FirebaseFirestore.instance
+        .collection('users')
+        .where('approved', isEqualTo: false)
+        .where('rejected', isEqualTo: false)
+        .get()
+        .then((querySnapshot) {
+      for (var doc in querySnapshot.docs) {
+        var tmpUser = AppUser(
+          userId: doc.id,
+          email: doc['email'],
+          userName: doc['userName'],
+          userImage: doc['imgUrl'],
+          admin: doc['admin'],
+          approved: doc['approved'],
+          rejected: doc['rejected'],
+        );
+        usersToAprove.add(tmpUser);
+      }
+    });
+    _isLoading = false;
+    notifyListeners();
+    return usersToAprove;
+  }
+
   // initializes user data
   Future<AppUser?> initializeUser(
     BuildContext context,
@@ -44,6 +72,7 @@ class UserProvider with ChangeNotifier {
         userImage: userSnapshot['imgUrl'],
         admin: userSnapshot['admin'],
         approved: userSnapshot['approved'],
+        rejected: userSnapshot['rejected'],
       );
 
       _isLoading = false;
@@ -75,6 +104,7 @@ class UserProvider with ChangeNotifier {
           userImage: userSnapshot['imgUrl'],
           admin: userSnapshot['admin'],
           approved: userSnapshot['approved'],
+          rejected: userSnapshot['rejected'],
         );
       } else {
         ScaffoldMessenger.of(context)
@@ -99,6 +129,7 @@ class UserProvider with ChangeNotifier {
       'imgUrl': _user!.userImage,
       'admin': _user!.admin,
       'approved': _user!.approved,
+      'rejected': _user!.rejected,
     });
     notifyListeners();
   }
@@ -109,7 +140,6 @@ class UserProvider with ChangeNotifier {
     String userName,
     String password,
     File? userImage,
-    bool admin,
     bool isLogin,
     BuildContext context,
   ) async {
@@ -150,8 +180,9 @@ class UserProvider with ChangeNotifier {
           'userName': userName,
           'email': email,
           'imgUrl': imgUrl,
-          'admin': admin,
+          'admin': false,
           'approved': false,
+          'rejected': false,
         });
 
         _user = AppUser(
@@ -160,8 +191,9 @@ class UserProvider with ChangeNotifier {
           userName: userName,
           // password: password,
           userImage: imgUrl,
-          admin: admin,
+          admin: false,
           approved: false,
+          rejected: false,
         );
 
         _isLoading = false;
@@ -208,5 +240,31 @@ class UserProvider with ChangeNotifier {
   // listens to user authentification status
   Stream<User?> authStateChanges() {
     return FirebaseAuth.instance.authStateChanges();
+  }
+
+  // delete user
+  Future<void> rejectUser(AppUser user) async {
+    FirebaseFirestore.instance.collection('users').doc(user.userId).set({
+      'userName': user.userName,
+      'email': user.email,
+      'imgUrl': user.userImage,
+      'admin': user.admin,
+      'approved': user.approved,
+      'rejected': true,
+    });
+    notifyListeners();
+  }
+
+  // accept user
+  Future<void> acceptUser(AppUser user) async {
+    FirebaseFirestore.instance.collection('users').doc(user.userId).set({
+      'userName': user.userName,
+      'email': user.email,
+      'imgUrl': user.userImage,
+      'admin': user.admin,
+      'approved': true,
+      'rejected': user.rejected,
+    });
+    notifyListeners();
   }
 }
