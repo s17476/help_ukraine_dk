@@ -4,8 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:help_ukraine_dk/firebase_options.dart';
 import 'package:help_ukraine_dk/helpers/size_config.dart';
+import 'package:help_ukraine_dk/providers/task_provider.dart';
 import 'package:help_ukraine_dk/providers/user_provider.dart';
 import 'package:help_ukraine_dk/screens/aprove.dart';
 import 'package:help_ukraine_dk/screens/auth_screen.dart';
@@ -13,6 +15,7 @@ import 'package:help_ukraine_dk/screens/await_confirmation.dart';
 import 'package:help_ukraine_dk/screens/email_verification.dart';
 import 'package:help_ukraine_dk/screens/initialization_fail.dart';
 import 'package:help_ukraine_dk/screens/loading.dart';
+import 'package:help_ukraine_dk/screens/manage_tasks.dart';
 import 'package:help_ukraine_dk/screens/rejected.dart';
 import 'package:help_ukraine_dk/screens/schedule.dart';
 import 'package:provider/provider.dart';
@@ -41,6 +44,7 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (ctx) => UserProvider()),
+        ChangeNotifierProvider(create: (ctx) => TaskProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -52,6 +56,7 @@ class _MyAppState extends State<MyApp> {
         routes: {
           Schedule.route: (ctx) => const Schedule(),
           AproveScreen.route: (ctx) => const AproveScreen(),
+          ManageTasks.route: (ctx) => const ManageTasks(),
         },
         home: FutureBuilder(
           future: _initialization,
@@ -66,18 +71,20 @@ class _MyAppState extends State<MyApp> {
                 stream: FirebaseAuth.instance.authStateChanges(),
                 builder: (BuildContext ctx, AsyncSnapshot<User?> userSnapshot) {
                   //set status bar and bottom navigation colors
-                  // SystemChrome.setSystemUIOverlayStyle(
-                  //     const SystemUiOverlayStyle(
-                  //   systemNavigationBarColor: Colors.black,
-                  //   statusBarColor: Colors.black,
-                  // ));
+                  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+                    systemNavigationBarColor: Colors.yellow.shade600,
+
+                    //   statusBarColor: Colors.black,
+                  ));
                   //user logged in
-                  // if (userSnapshot.hasData &&
-                  //     !userSnapshot.data!.emailVerified) {
-                  //   FirebaseAuth.instance.currentUser!.sendEmailVerification();
-                  //   return const EmailVerification();
-                  // }
+
                   if (userSnapshot.hasData) {
+                    // email verification
+                    // if (!userSnapshot.data!.emailVerified) {
+                    //   FirebaseAuth.instance.currentUser!
+                    //       .sendEmailVerification();
+                    //   return const EmailVerification();
+                    // }
                     UserProvider userProvider =
                         Provider.of<UserProvider>(context);
                     User? user = FirebaseAuth.instance.currentUser;

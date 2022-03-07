@@ -25,7 +25,10 @@ class _EmailVerificationState extends State<EmailVerification> {
         ],
       ),
       body: const Center(
-        child: Text('Email verification'),
+        child: FittedBox(
+          child:
+              Text('Click link in the email we sent to you and restart app.'),
+        ),
       ),
     );
   }

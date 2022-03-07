@@ -77,7 +77,8 @@ class _AproveScreenState extends State<AproveScreen> with ResponsiveSize {
                             ),
                           ),
                           TextButton(
-                            onPressed: () => Provider.of<UserProvider>(context)
+                            onPressed: () => Provider.of<UserProvider>(context,
+                                    listen: false)
                                 .acceptUser(user),
                             child: const Text(
                               'Accept',
